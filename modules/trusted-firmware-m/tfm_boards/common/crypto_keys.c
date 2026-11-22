@@ -18,6 +18,8 @@
 #endif
 
 #include <identity_key.h>
+#include <string.h>
+#include "puf_vault.h"
 
 #define MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID -0x3c000000
 #define TFM_NS_PARTITION_ID                  MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID
@@ -77,6 +79,27 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx, uint8_t *buf, size_
 	return TFM_PLAT_ERR_SUCCESS;
 }
 
+
+static enum tfm_plat_err_t tfm_plat_get_ram_huk(const void *ctx, uint8_t *buf, size_t buf_len,
+					    size_t *key_len, psa_key_bits_t *key_bits,
+					    psa_algorithm_t *algorithm, psa_key_type_t *type)
+{
+	const tfm_noinit_vault_t *vault = (const tfm_noinit_vault_t *)PUF_VAULT_ADDR;
+
+	(void)ctx;
+	if (buf_len < PUF_RAM_HUK_BYTES || !puf_vault_ram_huk_valid(vault)) {
+		return TFM_PLAT_ERR_SYSTEM_ERR;
+	}
+
+	memcpy(buf, vault->ram_huk, PUF_RAM_HUK_BYTES);
+	*key_len = PUF_RAM_HUK_BYTES;
+	*key_bits = 256;
+	*algorithm = PSA_ALG_HKDF(PSA_ALG_SHA_256);
+	*type = PSA_KEY_TYPE_DERIVE;
+
+	return TFM_PLAT_ERR_SUCCESS;
+}
+
 /**
  * @brief Table describing per-user key policy for the IAK
  *
@@ -108,6 +131,8 @@ static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
 #ifdef CONFIG_HW_UNIQUE_KEY
 	{.key_id = TFM_BUILTIN_KEY_ID_HUK, .per_user_policy = 0, .usage = PSA_KEY_USAGE_DERIVE},
 #endif /* CONFIG_HW_UNIQUE_KEY */
+	{.key_id = TFM_BUILTIN_KEY_ID_RAM_HUK, .per_user_policy = 0,
+	 .usage = PSA_KEY_USAGE_DERIVE},
 #ifdef TFM_PARTITION_INITIAL_ATTESTATION
 	{.key_id = TFM_BUILTIN_KEY_ID_IAK,
 	 .per_user_policy = ARRAY_SIZE(g_iak_per_user_policy),
@@ -129,6 +154,10 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
 	 .lifetime = TFM_BUILTIN_KEY_LOADER_LIFETIME,
 	 .loader_key_func = tfm_plat_get_huk},
 #endif /* CONFIG_HW_UNIQUE_KEY */
+	{.key_id = TFM_BUILTIN_KEY_ID_RAM_HUK,
+	 .slot_number = TFM_BUILTIN_KEY_SLOT_RAM_HUK,
+	 .lifetime = TFM_BUILTIN_KEY_LOADER_LIFETIME,
+	 .loader_key_func = tfm_plat_get_ram_huk},
 #ifdef TFM_PARTITION_INITIAL_ATTESTATION
 	{.key_id = TFM_BUILTIN_KEY_ID_IAK,
 	 .slot_number = TFM_BUILTIN_KEY_SLOT_IAK,

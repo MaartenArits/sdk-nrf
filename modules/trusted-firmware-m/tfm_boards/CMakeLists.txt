@@ -9,6 +9,8 @@
 
 set(NRF_BOARD_SELECTED True)
 
+set(PLATFORM_SVC_HANDLERS ON CACHE BOOL "" FORCE)
+
 set(partition_includes
   partition
   ${CMAKE_BINARY_DIR}/../zephyr/include/generated
@@ -201,11 +203,42 @@ if(TFM_PARTITION_PLATFORM)
     ${ZEPHYR_NRF_MODULE_DIR}/include
   )
 
+  # Rusty Tracker platform sources stay in the product repository. The
+  # application passes their paths through TFM_CMAKE_OPTIONS; a stock NCS build
+  # leaves them undefined and keeps the upstream platform sources untouched.
+  set(rusty_platform_system ${src_dir}/tfm_platform_system.c)
+  if(RUSTY_TFM_PLATFORM_SRC)
+    set(rusty_platform_system ${RUSTY_TFM_PLATFORM_SRC}/tfm_platform_system.c)
+    target_include_directories(platform_s
+      PUBLIC
+      ${RUSTY_TFM_PLATFORM_SRC}
+      ${RUSTY_FUOTA_SRC}
+      ${RUSTY_RTC_WDT_SRC}
+    )
+  endif()
+
   target_sources(platform_s
     PRIVATE
-    ${src_dir}/tfm_platform_system.c
+    ${rusty_platform_system}
     ${src_dir}/tfm_ioctl_s_api.c
   )
+
+  if(RUSTY_TFM_PLATFORM_SRC)
+    target_sources(platform_s
+      PRIVATE
+      ${RUSTY_TFM_PLATFORM_SRC}/puf_sram.c
+      ${RUSTY_TFM_PLATFORM_SRC}/bch_codec.c
+      ${RUSTY_RTC_WDT_SRC}/rtc_wdt_core.c
+      ${RUSTY_TFM_PLATFORM_SRC}/rtc_wdt_tfm.c
+      ${RUSTY_FUOTA_SRC}/fuota_bundle.c
+      ${RUSTY_FUOTA_SRC}/fuota_crc32.c
+      ${RUSTY_FUOTA_SRC}/fuota_dec.c
+      ${RUSTY_FUOTA_SRC}/xz_dec_lzma2.c
+      ${RUSTY_FUOTA_SRC}/xz_dec_stream.c
+      ${RUSTY_FUOTA_SRC}/xz_sha256.c
+    )
+  endif()
+
 endif()
 
 if(LOG_MEMORY_PROTECTION)

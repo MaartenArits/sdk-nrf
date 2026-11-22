@@ -36,3 +36,17 @@ set(EXTERNAL_CRYPTO_CORE_HANDLED_PSA_CRYPTO_CONFIG False CACHE BOOL "Use to ensu
 set(EXTERNAL_CRYPTO_CORE_HANDLED_PSA_CRYPTO_LIBRARY_CONFIG False CACHE BOOL "Use to ensure we add links only once")
 set(EXTERNAL_CRYPTO_CORE_HANDLED_TFM_PSA_ROT_PARTITION_CRYPTO False CACHE BOOL "Use to ensure we add links only once")
 set(EXTERNAL_CRYPTO_CORE_HANDLED_TFM_SPRT False CACHE BOOL "Use to ensure we add links only once")
+
+# Size-first TF-M code generation: allow identical-code folding and use the
+# smallest Thumb-2 function/jump/loop alignment so the unprivileged code ends
+# below the 0x4FC00 SPU boundary. This changes the delta-FUOTA base; the
+# previous -fno-ipa-icf/-falign-functions=4 pair is deliberately dropped.
+set(CMAKE_C_FLAGS
+  "${CMAKE_C_FLAGS} -fstack-usage -falign-functions=2 -falign-jumps=1 -falign-loops=1 -fno-unwind-tables -fno-asynchronous-unwind-tables"
+  CACHE STRING "Size-first TF-M C flags" FORCE)
+# The secure image is compiled with CMAKE_BUILD_TYPE=MinSizeRel, so -Os is
+# appended after the flags above. -Oz is a superset of -Os (GCC >= 12) and
+# keeps every enabled algorithm; it only trades a few instruction sequences for
+# code size. It is what keeps .TFM_UNPRIV_CODE inside the 0x4FC00 veneer window.
+set(CMAKE_C_FLAGS_MINSIZEREL "-Oz -DNDEBUG"
+  CACHE STRING "Size-first TF-M MinSizeRel flags" FORCE)

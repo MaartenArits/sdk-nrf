@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2023 Nordic Semiconductor ASA
+ * Copyright (c) 2023 Nordic Semiconductor ASA.
+ * Copyright (c) 2026 Nordic Semiconductor ASA.
  *
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
@@ -19,26 +20,32 @@ enum tfm_builtin_key_id_t {
 };
 
 #else
-/**
- * \brief The PSA driver location for TF-M builtin keys. Arbitrary within the
- * ranges documented at
- * https://armmbed.github.io/mbed-crypto/html/api/keys/lifetimes.html#c.psa_key_location_t
- */
+
 #define TFM_BUILTIN_KEY_LOADER_KEY_LOCATION ((psa_key_location_t)0x800001)
 
-/**
- * \brief The persistent key identifiers for TF-M builtin keys.
- *
- * The value of TFM_BUILTIN_KEY_ID_MIN (and therefore of the whole range) is
- * completely arbitrary except for being inside the PSA builtin keys range.
- *
- */
 enum tfm_builtin_key_id_t {
 	TFM_BUILTIN_KEY_ID_MIN = 0x7FFF815Bu,
 	TFM_BUILTIN_KEY_ID_HUK,
 	TFM_BUILTIN_KEY_ID_IAK,
 	TFM_BUILTIN_KEY_ID_PLAT_SPECIFIC_MIN = 0x7FFF816Bu,
-	/* Platform specific keys here */
+	/* Platform-specific keys fill the whole declared range. */
+	TFM_BUILTIN_KEY_ID_RAM_HUK = 0x7FFF816Bu,
+	TFM_BUILTIN_KEY_ID_RAM_0 = 0x7FFF816Cu,
+	TFM_BUILTIN_KEY_ID_RAM_1 = 0x7FFF816Du,
+	TFM_BUILTIN_KEY_ID_RAM_2 = 0x7FFF816Eu,
+	TFM_BUILTIN_KEY_ID_RAM_3 = 0x7FFF816Fu,
+	TFM_BUILTIN_KEY_ID_RAM_4 = 0x7FFF8170u,
+	TFM_BUILTIN_KEY_ID_RAM_5 = 0x7FFF8171u,
+	TFM_BUILTIN_KEY_ID_RAM_6 = 0x7FFF8172u,
+	TFM_BUILTIN_KEY_ID_RAM_7 = 0x7FFF8173u,
+	TFM_BUILTIN_KEY_ID_B0_0 = 0x7FFF8174u,
+	TFM_BUILTIN_KEY_ID_B0_1 = 0x7FFF8175u,
+	TFM_BUILTIN_KEY_ID_B0_2 = 0x7FFF8176u,
+	TFM_BUILTIN_KEY_ID_B0_3 = 0x7FFF8177u,
+	TFM_BUILTIN_KEY_ID_B0_4 = 0x7FFF8178u,
+	TFM_BUILTIN_KEY_ID_B0_5 = 0x7FFF8179u,
+	TFM_BUILTIN_KEY_ID_B0_6 = 0x7FFF817Au,
+	TFM_BUILTIN_KEY_ID_B0_7 = 0x7FFF817Bu,
 	TFM_BUILTIN_KEY_ID_MAX = 0x7FFF817Bu,
 };
 #endif /* NRF_CRACEN_BASE */
